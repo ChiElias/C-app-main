@@ -15,8 +15,8 @@
         </ul>
         <div dropdown class="dropdown" *ngIf="currentUser$ | async">
             <img src="{{user?.photoUrl || '/assets/images/default-user.png'}}" alt="{{user?.username}} photo">
-            <a dropdownToggle class="text-decoration-none dropdown-toggle text-light">Hello {{user?.username}}</a>
-            <div *dropdownMenu="" class="dropdown-menu">
+            <a dropdownToggle class="text-decoration-none dropdown-toggle text-light">Hello{{user?.aka | titlecase}}</a>           
+             <div *dropdownMenu="" class="dropdown-menu">
                 <a class="dropdown-item" routerLink="member/profile">Profile</a>
                 <a class="dropdown-item" (click)="logout()">Logout</a>
             </div>

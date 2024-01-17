@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using API.DTOs;
 using API.Interfaces;
+using AutoMapper;
 using Company.ClassLibrary1;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,11 +11,13 @@ namespace API.Controllers;
 
 public class AccountController : BaseApiController
 {
-     private readonly DataContext _dataContext;
+    private readonly IMapper _mapper1;
+    private readonly DataContext _dataContext;
     private readonly ITokenService _tokenService;
 
-    public AccountController(DataContext dataContext, ITokenService tokenService)
+    public AccountController(IMapper mapper,DataContext dataContext, ITokenService tokenService)
     {
+        _mapper1 = mapper;
         _dataContext = dataContext;
         _tokenService = tokenService;
     }
@@ -40,7 +43,9 @@ public class AccountController : BaseApiController
         {
             Username = user.UserName,
             Token = _tokenService.CreateToken(user),
-            PhotoUrl = user.Photos.FirstOrDefault(photo => photo.IsMain)?.Url
+            PhotoUrl = user.Photos.FirstOrDefault(photo => photo.IsMain)?.Url,
+            Aka = user.Aka,
+            Gender = user.Gender
         };
     }
 
@@ -49,14 +54,11 @@ public class AccountController : BaseApiController
     {
         if (await isUserExists(registerDto.Username!))
             return BadRequest("username is already exists");
-
+        var user = _mapper1.Map<AppUser>(registerDto);
         using var hmacSHA256 = new HMACSHA256();
-        var user = new AppUser
-        {
-            UserName = registerDto.Username.Trim().ToLower(),
-            PasswordHash = hmacSHA256.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password.Trim())),
-            PasswordSalt = hmacSHA256.Key
-        };
+        user.UserName = registerDto.Username.Trim().ToLower();
+        user.PasswordHash = hmacSHA256.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password.Trim()));
+        user.PasswordSalt = hmacSHA256.Key;
 
         _dataContext.Users.Add(user);
         await _dataContext.SaveChangesAsync();
@@ -64,7 +66,9 @@ public class AccountController : BaseApiController
         return new UserDto
         {
             Username = user.UserName,
-            Token = _tokenService.CreateToken(user)
+            Token = _tokenService.CreateToken(user),
+            Aka = user.Aka,
+            Gender = user.Gender
         };
     }       
 
