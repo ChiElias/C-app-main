@@ -35,6 +35,11 @@ public class UserRepository : IUserRepository
 
         if (userParams.Gender != "non-binary")
             query = query.Where(user => user.Gender == userParams.Gender);
+            query = userParams.OrderBy switch
+        {
+            "created" => query.OrderByDescending(user => user.Created),
+            _ => query.OrderByDescending(user => user.LastActive),
+        };
             query.AsNoTracking();
             
         return await PageList<MemberDto>.CreateAsync(
@@ -51,7 +56,13 @@ public class UserRepository : IUserRepository
             .SingleOrDefaultAsync();
     }
     
-    
+        public async Task<AppUser?> GetUserByUserNameWithOutPhotoAsync(string username)
+    {
+                return await _dataContext.Users
+            //  .Include(user => user.Photos)
+                 .SingleOrDefaultAsync(user => user.UserName == username);
+        
+    }
 
     public async Task<AppUser?> GetUserByUserNameAsync(string username)
     {
@@ -59,6 +70,9 @@ public class UserRepository : IUserRepository
         .Include(user => user.Photos)
         .SingleOrDefaultAsync(user => user.UserName == username);
     }
+
+
+
 
     public async Task<IEnumerable<AppUser>> GetUsersAsync()
     {
@@ -71,8 +85,8 @@ public class UserRepository : IUserRepository
 
     public void Update(AppUser user) => _dataContext.Entry(user).State = EntityState.Modified;
 
-    Task<AppUser?> IUserRepository.GetUserByIdAsync(int id)
+    async Task<AppUser?> IUserRepository.GetUserByIdAsync(int id)
     {
-        throw new NotImplementedException();
+        return await _dataContext.Users.FindAsync(id);
     }
 }

@@ -13,4 +13,6 @@ public interface IUserRepository
     // Task<IEnumerable<MemberDto>> GetMembersAsync();
     Task<PageList<MemberDto>> GetMembersAsync(UserParams userParams);
     Task<MemberDto?> GetMemberByUsernameAsync(string username);
+    Task<AppUser?> GetUserByUserNameWithOutPhotoAsync(string username);
+
 }
